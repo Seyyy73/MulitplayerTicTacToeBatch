@@ -15,6 +15,8 @@ REM ==================================
 :basicset
 cls
 color 0E
+set bag=0
+set tex=E
 echo What is your name?
 :repname
 set usrname=ERR
@@ -33,22 +35,66 @@ echo.
 echo.
 echo  1^> Create Online Game
 echo  2^> Join Online Game
-echo  3^> Quit
-echo  4^> Change Color
+echo  3^> Change Color
+echo  4^> Quit
 echo.
 
 choice /c 1234v /n
 
 if %errorlevel% EQU 1 goto create
 if %errorlevel% EQU 2 goto join
-if %errorlevel% EQU 3 goto sui
-if %errorlevel% EQU 4 goto col
+if %errorlevel% EQU 3 goto col
+if %errorlevel% EQU 4 goto sui
 if %errorlevel% EQU 5 goto basicset
 
 goto errex
 
 :col
-color %random:~0,1%%random:~1,1%
+cls
+echo Change Color!
+echo -------------------------------
+echo.
+echo.
+echo  1^> Background
+echo  2^> Text
+echo  3^> Default
+echo  4^> Back
+echo.
+
+choice /c 1234 /n
+if %errorlevel% EQU 4 goto reall
+if %errorlevel% EQU 3 (
+color 0E
+set bag=0
+set tex=E
+goto reall
+)
+set csmod=%errorlevel%
+
+cls
+echo Change Color!
+echo -------------------------------
+echo.
+echo  1^> Black
+echo  2^> Blue
+echo  3^> Green
+echo  4^> Aqua
+echo  5^> Red
+echo  6^> Purple
+echo  7^> Yellow
+echo  8^> White
+echo  9^> Gray
+echo.
+
+
+choice /c 123456789 /n
+set /a ccd = %errorlevel% - 1
+if %csmod% EQU 1 (
+set bag=%ccd%
+) ELSE (
+set tex=%ccd%
+)
+color %bag%%tex%
 goto reall
 
 
@@ -66,6 +112,7 @@ set sdir=ERR
 set /p "sdir=Shared Directory: "
 
 if %sdir% == ERR goto fixdirnow
+if %sdir% == back goto reall
 
 if not exist %sdir% (
 echo -- Invalid Directory Path
@@ -87,6 +134,7 @@ set namn=ERR
 set /p "namn=Game Name: " 
 
 if %namn% == ERR goto fixname
+if %namn% == back goto reall
 
 echo %namn%>%sdir%locked.ttt
 
@@ -95,6 +143,8 @@ echo -------------------------------
 echo Could not create new game!
 goto errex
 )
+
+:creategamemech
 
 echo 1 > %sdir%game.swipe
 echo %usrname% > %sdir%host.swipe
@@ -123,7 +173,7 @@ echo.
 echo.
 echo.
 echo Press Any Key To Start!
-pause>nul
+timeout /T 15 > nul
 
 echo 6 > %sdir%game.swipe
 
@@ -311,12 +361,7 @@ echo.
 echo +----------------------------+
 echo.
 echo.
-
-pause>nul
-goto reall
-
-
-
+goto endofgame
 
 :likeiwin
 echo 13 > %sdir%carrier.swipe
@@ -334,9 +379,7 @@ echo.
 echo +----------------------------+
 echo.
 echo.
-
-pause>nul
-goto reall
+goto endofgame
 
 :likeidied
 echo.
@@ -348,10 +391,20 @@ echo.
 echo +----------------------------+
 echo.
 echo.
+:endofgame
 
-pause>nul
-goto reall
+if %owned% EQU 5 goto hostselector
 
+echo [r]ejoin game or [q]uit
+choice /c rq /n
+if %errorlevel% EQU 1 goto swipeset
+if %errorlevel% EQU 2 goto reall
+
+:hostselector
+echo [r]ecreate game or [q]uit
+choice /c rq /n
+if %errorlevel% EQU 1 goto creategamemech
+if %errorlevel% EQU 2 goto reall
 
 :join
 set owned=6
@@ -367,6 +420,9 @@ echo.
 set sdir=err
 set /p "sdir=Swipe Path: "
 if %sdir% == err goto fixswipe
+if %sdir% == back goto reall
+
+:swipeset
 
 if not exist %sdir%locked.ttt (
 echo Could not find an online game!
@@ -384,6 +440,8 @@ echo  Name: %resp%
 echo  Host: %hosts%
 echo  Status: %gstat%
 echo +-----------------------------+
+
+
 if not %gstat% == 1 (
 echo --Cannot join!
 goto fixswipe
@@ -431,6 +489,7 @@ echo owned: %owned%
 echo carrylf: %carryfl%
 echo opsign: %opsign%
 echo mysign: %mysign%
+echo gstat: %gstat%
 
 
 echo.
